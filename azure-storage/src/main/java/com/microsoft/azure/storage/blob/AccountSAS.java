@@ -14,8 +14,6 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
@@ -84,8 +82,7 @@ public final class AccountSAS extends BaseSAS {
 
         String servicesString = AccountSASService.servicesToString(this.services);
         String resourceTypesString = AccountSASResourceType.resourceTypesToString(this.resourceTypes);
-        String stringToSign = StringUtils.join(
-                new String[]{
+        String[] components = new String[]{
                         sharedKeyCredentials.getAccountName(),
                         super.permissions,
                         servicesString,
@@ -95,12 +92,14 @@ public final class AccountSAS extends BaseSAS {
                         ipRange.toString(),
                         super.protocol.toString(),
                         super.version,
-                        Constants.EMPTY_STRING // Account SAS requires an additional newline character
-                },
-                '\n'
-        );
+                        Constants.EMPTY_STRING}; // Account SAS requires an additional newline character
+        StringBuilder stringToSign = new StringBuilder();
+        for (String component : components) {
+            stringToSign.append(component);
+            stringToSign.append('\n');
+        }
 
-        String signature = sharedKeyCredentials.computeHmac256(stringToSign);
+        String signature = sharedKeyCredentials.computeHmac256(stringToSign.toString());
 
         SASQueryParameters sasParams = new SASQueryParameters();
         sasParams.version = super.version;

@@ -14,8 +14,6 @@
  */
 package com.microsoft.azure.storage.blob;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
@@ -66,26 +64,28 @@ public final class ServiceSAS extends BaseSAS {
             resource = "b";
         }
 
-        String stringToSign = StringUtils.join(
-                new String[]{
-                        super.permissions,
-                        Utility.getUTCTimeOrEmpty(super.startTime),
-                        Utility.getUTCTimeOrEmpty(super.expiryTime),
-                        getCanonicalName(sharedKeyCredentials.getAccountName()),
-                        this.identifier,
-                        super.getIPRangeAsString(),
-                        super.protocol.toString(),
-                        super.version,
-                        this.cacheControl,
-                        this.contentDisposition,
-                        this.contentEncoding,
-                        this.contentLanguage,
-                        this.contentType
-                },
-                '\n'
-        );
+        String[] components = new String[]{
+                            super.permissions,
+                            Utility.getUTCTimeOrEmpty(super.startTime),
+                            Utility.getUTCTimeOrEmpty(super.expiryTime),
+                            getCanonicalName(sharedKeyCredentials.getAccountName()),
+                            this.identifier,
+                            super.getIPRangeAsString(),
+                            super.protocol.toString(),
+                            super.version,
+                            this.cacheControl,
+                            this.contentDisposition,
+                            this.contentEncoding,
+                            this.contentLanguage,
+                            this.contentType
+        };
+        StringBuilder stringToSign = new StringBuilder();
+        for (String component : components) {
+            stringToSign.append(component);
+            stringToSign.append('\n');
+        }
 
-        String signature = sharedKeyCredentials.computeHmac256(stringToSign);
+        String signature = sharedKeyCredentials.computeHmac256(stringToSign.toString());
 
         SASQueryParameters sasParams = new SASQueryParameters();
         sasParams.version = super.version;
@@ -97,7 +97,7 @@ public final class ServiceSAS extends BaseSAS {
         sasParams.resource = resource;
         sasParams.permissions = super.permissions;
         try {
-            sasParams.signature = URLEncoder.encode(signature, "UTF-8");// TODO: use non depricated version
+            sasParams.signature = URLEncoder.encode(signature, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             // If UTF-8 is not supported, we have no idea what to do
         }
@@ -107,17 +107,15 @@ public final class ServiceSAS extends BaseSAS {
     private String getCanonicalName(String accountName) {
         // Container: "/blob/account/containername"
         // Blob:      "/blob/account/containername/blobname"
-        String canoncialName = StringUtils.join(
-                new String[]{
-                        "/blob",
-                        accountName,
-                        this.containerName
-                },
-                '/');
+        StringBuilder canonicalName = new StringBuilder("/blob");
+        canonicalName.append('/');
+        canonicalName.append(accountName);
+        canonicalName.append('/');
+        canonicalName.append(this.containerName);
         if (!Utility.isNullOrEmpty(this.blobName)) {
-            canoncialName += "/" + this.blobName.replace("\\", "/");
+            canonicalName.append("/" + this.blobName.replace("\\", "/"));
         }
 
-        return canoncialName;
+        return canonicalName.toString();
     }
 }

@@ -19,16 +19,17 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
 public final class URLParser {
-
+    public static final String snapshotTimeFormat = "2006-01-02T15:04:05.0000000Z07:00";
     // URLParser parses a URL initializing BlobURLParts' fields including any SAS-related & snapshot query parameters. Any other
     // query parameters remain in the UnparsedParams field. This method overwrites all fields in the BlobURLParts object.
-    public static BlobURLParts ParseURL(String urlString) throws MalformedURLException, UnsupportedEncodingException {
+    public static BlobURLParts ParseURL(String urlString) throws MalformedURLException, UnsupportedEncodingException, ParseException {
 
         URL url = new URL(urlString);
 
@@ -69,8 +70,9 @@ public final class URLParser {
         }
 
         SASQueryParameters sasQueryParameters = new SASQueryParameters(queryParamsMap, true);
-
-        return new BlobURLParts(scheme, host, containerName, blobName, snapshot, sasQueryParameters, queryParamsMap);
+        SimpleDateFormat format = new SimpleDateFormat(snapshotTimeFormat);
+        return new BlobURLParts(scheme, host, containerName, blobName, format.parse(snapshot), sasQueryParameters,
+                queryParamsMap);
     }
 
     /**

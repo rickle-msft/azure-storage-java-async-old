@@ -25,6 +25,7 @@ import io.reactivex.Single;
 
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -61,7 +62,7 @@ public final class AppendBlobURL extends BlobURL {
      * @return
      *      A {@link BlobURL} object with the given pipeline.
      */
-    public AppendBlobURL withSnapshot(String snapshot) throws MalformedURLException, UnsupportedEncodingException {
+    public AppendBlobURL withSnapshot(Date snapshot) throws MalformedURLException, UnsupportedEncodingException, ParseException {
         BlobURLParts blobURLParts = URLParser.ParseURL(super.url);
         blobURLParts.setSnapshot(snapshot);
         return new AppendBlobURL(blobURLParts.toURL(), super.storageClient.httpPipeline());

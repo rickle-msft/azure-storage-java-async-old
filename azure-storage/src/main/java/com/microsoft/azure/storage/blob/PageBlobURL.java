@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -63,7 +64,7 @@ public final class PageBlobURL extends BlobURL {
      * @return
      *      A {@link PageBlobURL} object with the given pipeline.
      */
-    public PageBlobURL withSnapshot(String snapshot) throws MalformedURLException, UnsupportedEncodingException {
+    public PageBlobURL withSnapshot(Date snapshot) throws MalformedURLException, UnsupportedEncodingException, ParseException {
         BlobURLParts blobURLParts = URLParser.ParseURL(super.url);
         blobURLParts.setSnapshot(snapshot);
         return new PageBlobURL(blobURLParts.toURL(), super.storageClient.httpPipeline());

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.InvalidKeyException;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -25,7 +26,7 @@ import static org.junit.Assert.assertArrayEquals;
 public class BlobStorageAPITests {
 
     @Test
-    public void TestPutBlobBasic() throws IOException, InvalidKeyException, InterruptedException {
+    public void TestPutBlobBasic() throws IOException, InvalidKeyException, InterruptedException, ParseException {
         /**
          * This library uses the Azure Rest Pipeline to make its requests. Details on this pipeline can be found here:
          * https://github.com/Azure/azure-pipeline-go/blob/master/pipeline/doc.go All references to HttpPipeline and
@@ -115,12 +116,12 @@ public class BlobStorageAPITests {
             Assert.assertEquals(headers.getContentType(), receivedHeaders.contentType());
 
             // Create a snapshot of the blob and pull the snapshot ID out of the headers.
-            String snapshot = bu.createSnapshotAsync(null, null).blockingGet()
+            DateTime snapshot = bu.createSnapshotAsync(null, null).blockingGet()
                     .headers().snapshot();
 
             // Create a reference to the blob snapshot. This returns a new BlockBlobURL object that references the same
             // path as the base blob with the query string including the snapshot value appended to the end.
-            BlockBlobURL buSnapshot = bu.withSnapshot(snapshot);
+            BlockBlobURL buSnapshot = bu.withSnapshot(snapshot.toDate());
 
             // Download the contents of the snapshot.
             data = buSnapshot.getBlobAsync(new BlobRange(0L, 3L),

@@ -2,16 +2,16 @@
 swagger: '2.0'
 info:
   title: Azure Blob Storage
-  version: '2016-05-31'
+  version: '2017-07-29'
   x-ms-code-generation-settings:
     header: MIT
     strictSpecAdherence: false
 x-ms-parameterized-host:
-  hostTemplate: "{url}"
+  hostTemplate: "{accountUrl}"
   useSchemePrefix: false
   positionInOperation: first
   parameters:
-  - "$ref": "#/parameters/Url"
+  - "$ref": "#/parameters/accountUrl"
 securityDefinitions:
   blob_shared_key:
     type: apiKey
@@ -1330,7 +1330,7 @@ x-ms-paths:
               x-ms-client-name: IsIncrementalCopy
               type: boolean
               description: Included if the blob is incremental copy blob.
-            x-ms-destination-snapshot:
+            x-ms-copy-destination-snapshot:
               x-ms-client-name: DestinationSnapshot
               type: string
               format: date-time
@@ -1449,6 +1449,27 @@ x-ms-paths:
                 algorithm. Otherwise, the value is set to false (when the blob is
                 unencrypted, or if only parts of the blob/application metadata are
                 encrypted).
+            x-ms-access-tier:
+              x-ms-client-name: AccessTier
+              type: string
+              description: The tier of page blob on a premium storage account or tier
+                of block blob on blob storage LRS accounts. For a list of allowed
+                premium page blob tiers, see https://docs.microsoft.com/en-us/azure/virtual-machines/windows/premium-storage#features.
+                For blob storage LRS accounts, valid values are Hot/Cool/Archive.
+            x-ms-access-tier-inferred:
+              x-ms-client-name: AccessTierInferred
+              type: boolean
+              description: For page blobs on a premium storage account only. If the
+                access tier is not explicitly set on the blob, the tier is inferred
+                based on its content length and this header will be returned with
+                true value.
+            x-ms-archive-status:
+              x-ms-client-name: ArchiveStatus
+              type: string
+              description: For blob storage LRS accounts, valid values are rehydrate-pending-to-hot/rehydrate-pending-to-cool.
+                If the blob is being rehydrated and is not complete then this header
+                is returned indicating that rehydrate is pending and also tells the
+                destination tier.
     delete:
       tags:
       - blobs
@@ -2067,6 +2088,58 @@ x-ms-paths:
       type: string
       enum:
       - copy
+  "/{containerName}/{blob}?comp=tier":
+    put:
+      tags:
+      - blobs
+      operationId: Blobs_SetBlobTier
+      description: The Set Blob Tier operation sets the tier on a blob. The operation
+        is allowed on a page blob in a premium storage account and on a block blob
+        in a blob storage account (locally redundant storage only). A premium page
+        blob's tier determines the allowed size, IOPS, and bandwidth of the blob.
+        A block blob's tier determines Hot/Cool/Archive storage type. This operation
+        does not update the blob's ETag.
+      parameters:
+      - "$ref": "#/parameters/Timeout"
+      - "$ref": "#/parameters/AccessTier"
+      - "$ref": "#/parameters/ApiVersionParameter"
+      - "$ref": "#/parameters/ClientRequestId"
+      responses:
+        '200':
+          description: The new tier will take effect immediately.
+          headers:
+            x-ms-request-id:
+              x-ms-client-name: RequestId
+              type: string
+              description: This header uniquely identifies the request that was made
+                and can be used for troubleshooting the request.
+              x-ms-version:
+                x-ms-client-name: Version
+                type: string
+                description: Indicates the version of the Blob service used to execute
+                  the request. This header is returned for requests made against version
+                  2009-09-19 and newer.
+        '202':
+          description: The transition to the new tier is pending.
+          headers:
+            x-ms-request-id:
+              x-ms-client-name: RequestId
+              type: string
+              description: This header uniquely identifies the request that was made
+                and can be used for troubleshooting the request.
+              x-ms-version:
+                x-ms-client-name: Version
+                type: string
+                description: Indicates the version of the Blob service used to execute
+                  the request. This header is returned for requests made against version
+                  2009-09-19 and newer.
+    parameters:
+    - name: comp
+      in: query
+      required: true
+      type: string
+      enum:
+      - tier
   "/{containerName}/{blob}?comp=block":
     put:
       tags:
@@ -2618,6 +2691,30 @@ definitions:
       Permission:
         description: the permissions for the acl policy
         type: string
+  AccessTier:
+    type: string
+    enum:
+    - P4
+    - P6
+    - P10
+    - P20
+    - P30
+    - P40
+    - P50
+    - Hot
+    - Cool
+    - Archive
+    x-ms-enum:
+      name: AccessTier
+      modelAsString: true
+  ArchiveStatus:
+    type: string
+    enum:
+    - rehydrate-pending-to-hot
+    - rehydrate-pending-to-cool
+    x-ms-enum:
+      name: ArchiveStatus
+      modelAsString: true
   Blob:
     description: An Azure Storage blob
     type: object
@@ -2699,6 +2796,15 @@ definitions:
         type: boolean
       IncrementalCopy:
         type: boolean
+      DestinationSnapshot:
+        type: string
+        format: date-time
+      AccessTier:
+        "$ref": "#/definitions/AccessTier"
+      AccessTierInferred:
+        type: boolean
+      ArchiveStatus:
+        "$ref": "#/definitions/ArchiveStatus"
   ListBlobsIncludeItem:
     name: includeItem
     type: string
@@ -2945,7 +3051,7 @@ definitions:
         - unavailable
         x-ms-enum:
           name: GeoReplicationStatusType
-          modelAsString: false
+          modelAsString: true
       LastSyncTime:
         description: A GMT date/time value, to the second. All primary writes preceding
           this value are guaranteed to be available for read operations at the secondary.
@@ -3134,22 +3240,19 @@ definitions:
         description: Geo-Replication information for the Secondary Storage Service
         "$ref": "#/definitions/GeoReplication"
 parameters:
-  Url:
-    name: url
-    description: The url to the resource.
+  AccountUrl:
+    name: accountUrl
+    description: The Azure Storage account to use.
     required: true
     type: string
     in: path
     x-ms-skip-url-encoding: true
-    x-ms-parameter-location: method
   ApiVersionParameter:
     name: x-ms-version
     x-ms-client-name: version
     in: header
     required: true
     type: string
-    enum:
-    - '2016-05-31'
     description: Specifies the version of the operation to use for this request.
   Blob:
     name: blob
@@ -3209,6 +3312,28 @@ parameters:
     x-ms-enum:
       name: PublicAccessType
       modelAsString: true
+  AccessTier:
+    name: x-ms-access-tier
+    x-ms-client-name: tier
+    in: header
+    required: true
+    type: string
+    enum:
+    - P4
+    - P6
+    - P10
+    - P20
+    - P30
+    - P40
+    - P50
+    - Hot
+    - Cool
+    - Archive
+    x-ms-enum:
+      name: AccessTier
+      modelAsString: true
+    x-ms-parameter-location: method
+    description: Indicates the tier to be set on the blob.
   BlobContentDisposition:
     name: x-ms-blob-content-disposition
     x-ms-client-name: blobContentDisposition

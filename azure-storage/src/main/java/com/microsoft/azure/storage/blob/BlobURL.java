@@ -21,11 +21,13 @@ import com.microsoft.rest.v2.ServiceCallback;
 import com.microsoft.rest.v2.http.AsyncInputStream;
 import com.microsoft.rest.v2.http.HttpPipeline;
 import io.reactivex.Single;
+import org.joda.time.DateTime;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Date;
 
 /**
@@ -62,7 +64,7 @@ public class BlobURL extends StorageURL {
      * @return
      *      A {@link BlobURL} object with the given pipeline.
      */
-    public BlobURL withSnapshot(String snapshot) throws MalformedURLException, UnsupportedEncodingException {
+    public BlobURL withSnapshot(Date snapshot) throws MalformedURLException, UnsupportedEncodingException, ParseException {
         BlobURLParts blobURLParts = URLParser.ParseURL(super.url);
         blobURLParts.setSnapshot(snapshot);
         return new BlobURL(blobURLParts.toURL(), super.storageClient.httpPipeline());
