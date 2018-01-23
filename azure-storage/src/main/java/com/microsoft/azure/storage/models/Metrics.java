@@ -21,7 +21,7 @@ public class Metrics {
     /**
      * The version of Storage Analytics to configure.
      */
-    @JsonProperty(value = "Version", required = true)
+    @JsonProperty(value = "Version")
     private String version;
 
     /**
@@ -34,13 +34,13 @@ public class Metrics {
      * Indicates whether metrics should generate summary statistics for called
      * API operations.
      */
-    @JsonProperty(value = "IncludeAPIs", required = true)
-    private boolean includeAPIs;
+    @JsonProperty(value = "IncludeAPIs")
+    private Boolean includeAPIs;
 
     /**
      * The retentionPolicy property.
      */
-    @JsonProperty(value = "RetentionPolicy", required = true)
+    @JsonProperty(value = "RetentionPolicy")
     private RetentionPolicy retentionPolicy;
 
     /**
@@ -88,7 +88,7 @@ public class Metrics {
      *
      * @return the includeAPIs value
      */
-    public boolean includeAPIs() {
+    public Boolean includeAPIs() {
         return this.includeAPIs;
     }
 
@@ -98,7 +98,7 @@ public class Metrics {
      * @param includeAPIs the includeAPIs value to set
      * @return the Metrics object itself.
      */
-    public Metrics withIncludeAPIs(boolean includeAPIs) {
+    public Metrics withIncludeAPIs(Boolean includeAPIs) {
         this.includeAPIs = includeAPIs;
         return this;
     }

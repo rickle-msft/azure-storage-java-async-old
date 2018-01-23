@@ -26,12 +26,12 @@ import com.microsoft.rest.v2.http.HttpPipeline;
  */
 public class StorageClientImpl extends ServiceClient implements StorageClient {
     /**
-     * The Azure Storage account to use.
+     * The URL of the service account, container, or blob that is the targe of the desired operation.
      */
     private String url;
 
     /**
-     * Gets The Azure Storage account to use.
+     * Gets The URL of the service account, container, or blob that is the targe of the desired operation.
      *
      * @return the url value.
      */
@@ -40,7 +40,7 @@ public class StorageClientImpl extends ServiceClient implements StorageClient {
     }
 
     /**
-     * Sets The Azure Storage account to use.
+     * Sets The URL of the service account, container, or blob that is the targe of the desired operation.
      *
      * @param url the url value.
      * @return the service client itself

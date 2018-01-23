@@ -15,14 +15,14 @@ package com.microsoft.azure.storage;
  */
 public interface StorageClient {
     /**
-     * Gets The Azure Storage account to use.
+     * Gets The URL of the service account, container, or blob that is the targe of the desired operation.
      *
      * @return the url value.
      */
     String url();
 
     /**
-     * Sets The Azure Storage account to use.
+     * Sets The URL of the service account, container, or blob that is the targe of the desired operation.
      *
      * @param url the url value.
      * @return the service client itself
