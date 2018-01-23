@@ -123,6 +123,7 @@ public class ServiceURLTests {
     // SAMPLE
     @Test
     public void TestListContainersFull() {
+        // TODO: An empty list should not be null.
         List<Container> containers = ServiceURLTests.serviceURL.listConatinersAsync("java", null,
                 null, null).blockingGet().body().containers();
         Assert.assertEquals(0, containers.size());
